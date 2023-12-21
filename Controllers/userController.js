@@ -11,7 +11,6 @@ export const registerUser = async (req, res) => {
             message: "all fields are compulsory"
         })
     }
-
     const userExists = await User.findOne({ email });
     if (userExists) {
         return res.status(402).json({
@@ -19,25 +18,32 @@ export const registerUser = async (req, res) => {
             message: "User already exists"
         })
     }
-    const user = await User.create({
-        name,
-        email,
-        password,
-        pic
-    })
-    if (user) {
-        return res.status(200).json({
-            success: true,
-            _id: User._id,
-            name: User.name,
-            email: User.email,
-            pic: User.pic,
-            token: generateToken(user._id)
+    try {
+        const user = new User({
+            name,
+            email,
+            password,
+            pic
         })
+        const val = await user.save();
+        if (user) {
+            return res.status(200).json({
+                success: true,
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                pic: user.pic,
+                token: generateToken(user._id)
+            })
+        }
+        else {
+            throw new Error("failed to create the user");
+        }
     }
-    else {
-        throw new Error("failed to create the user")
+    catch (err) {
+        throw new Error(`failed to create the user ${err.message}`);
     }
+
 }
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
