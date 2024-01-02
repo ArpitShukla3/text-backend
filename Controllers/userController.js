@@ -1,9 +1,7 @@
 import User from "../Models/userModel.js";
 import generateToken from "../config/generateToken.js";
-import asyncHandler from "express-async-handler"
 import bcrypt from "bcryptjs"
 export const registerUser = async (req, res) => {
-
     const { name, email, password, pic } = req.body;
     if (!name || !email || !password) {
         return res.status(404).json({
@@ -37,15 +35,21 @@ export const registerUser = async (req, res) => {
             })
         }
         else {
-            throw new Error("failed to create the user");
+            return res.status(400).json({
+                success: false,
+                error: "failed to create user"
+            });
         }
     }
-    catch (err) {
-        throw new Error(`failed to create the user ${err.message}`);
+    catch (error) {
+        return res.status(400).json({
+            success: false,
+            error: error.message
+        });
     }
 
 }
-export const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
@@ -59,28 +63,10 @@ export const loginUser = asyncHandler(async (req, res) => {
         })
     }
     else {
-        throw new Error("Invalid Email or Password")
+        return res.status(400).json({
+            success: false,
+            error: "Invalid email or password/Invalid credentials"
+        });
     }
 
-})
-export const allUsers = asyncHandler(async (req, res) => {
-    const keyword = req.query.search ? {
-        $or: [
-            { name: { $regex: new RegExp(req.query.search, 'i') } },
-            { email: { $regex: new RegExp(req.query.search, 'i') } }
-        ]
-    } : {};
-    try {
-        const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
-        return res.status(200).json({
-            success: true,
-            results: users
-        })
-    } catch (error) {
-        return res.status(200).json({
-            success: true,
-            results: error.message
-        })
-    }
-
-}) 
+}
