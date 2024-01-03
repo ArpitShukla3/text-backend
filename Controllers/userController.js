@@ -1,6 +1,7 @@
 import User from "../Models/userModel.js";
 import generateToken from "../config/generateToken.js";
 import bcrypt from "bcryptjs"
+import * as EmailValidator from 'email-validator';
 export const registerUser = async (req, res) => {
     const { name, email, password, pic } = req.body;
     if (!name || !email || !password) {
@@ -9,6 +10,12 @@ export const registerUser = async (req, res) => {
             message: "all fields are compulsory"
         })
     }
+    if (!EmailValidator.validate("test@email.com")) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid email"
+        })
+    } // true
     const userExists = await User.findOne({ email });
     if (userExists) {
         return res.status(402).json({
