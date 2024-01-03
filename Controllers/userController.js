@@ -10,7 +10,7 @@ export const registerUser = async (req, res) => {
             message: "all fields are compulsory"
         })
     }
-    if (!EmailValidator.validate("test@email.com")) {
+    if (!EmailValidator.validate(email)) {
         return res.status(401).json({
             success: false,
             message: "Invalid email"
@@ -58,21 +58,27 @@ export const registerUser = async (req, res) => {
 }
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-
-    if (user && bcrypt.compare(password, user.password)) {
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            pic: user.pic,
-            token: generateToken(user._id)
-        })
-    }
-    else {
+    try {
+        const user = await User.findOne({ email });
+        if (user && bcrypt.compare(password, user.password)) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                pic: user.pic,
+                token: generateToken(user._id)
+            })
+        }
+        else {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid email or password/Invalid credentials"
+            });
+        }
+    } catch (error) {
         return res.status(400).json({
             success: false,
-            error: "Invalid email or password/Invalid credentials"
+            error: error.message
         });
     }
 
